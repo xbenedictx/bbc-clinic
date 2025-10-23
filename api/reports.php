@@ -1,34 +1,45 @@
 <?php
 include 'config.php';
-require 'vendor/autoload.php';  // For FPDF and phpqrcode
+require 'vendor/autoload.php'; // Composer: setasign/fpdf, phpqrcode/qrcode
 
-use setasign\Fpdi;
+use setasign\Fpdi\Fpdi;
 use QRcode;
 
-// Example: Generate invoice PDF
 $input = json_decode(file_get_contents('php://input'), true);
-$invoiceId = $input['invoice_id'];
+$invoice_id = $input['invoice_id'] ?? '';
 
-// Fetch data (simplified)
-$stmt = $pdo->prepare("SELECT * FROM invoices i JOIN appointments a ON i.appointment_id = a.id JOIN pets p ON a.pet_id = p.id WHERE i.id = ?");
-$stmt->execute([$invoiceId]);
-$invoice = $stmt->fetch();
+$stmt = $pdo->prepare("SELECT i.*, a.date, p.name AS pet_name, c.name AS client_name 
+                       FROM invoices i 
+                       JOIN appointments a ON i.appointment_id = a.id 
+                       JOIN pets p ON a.pet_id = p.id 
+                       JOIN clients c ON p.client_id = c.id 
+                       WHERE i.id = ?");
+$stmt->execute([$invoice_id]);
+$invoice = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Generate QR (with transaction_id)
-QRcode::png($invoice['transaction_id'], 'qr.png', 'L', 4, 2);
+if (!$invoice) {
+    echo json_encode(['success' => false, 'message' => 'Invoice not found']);
+    exit;
+}
+
+// Generate QR code
+$qr_file = 'qr_' . $invoice_id . '.png';
+QRcode::png($invoice['transaction_id'], $qr_file, 'L', 4, 2);
 
 // Create PDF
-$pdf = new FPDF();
+$pdf = new Fpdi();
 $pdf->AddPage();
 $pdf->SetFont('Arial', 'B', 16);
-$pdf->Cell(40, 10, 'BBC Clinic Invoice');
+$pdf->Cell(0, 10, 'BBC Clinic Invoice', 0, 1, 'C');
 $pdf->Ln(10);
-// Add details...
-$pdf->Cell(40, 10, 'Amount: $' . $invoice['amount']);
-$pdf->Ln(10);
-// Add QR image
-$pdf->Image('qr.png', 10, 100, 33, 0, 'PNG');
-unlink('qr.png');  // Cleanup
+$pdf->SetFont('Arial', '', 12);
+$pdf->Cell(0, 10, 'Client: ' . $invoice['client_name'], 0, 1);
+$pdf->Cell(0, 10, 'Pet: ' . $invoice['pet_name'], 0, 1);
+$pdf->Cell(0, 10, 'Date: ' . $invoice['date'], 0, 1);
+$pdf->Cell(0, 10, 'Amount: $' . $invoice['amount'], 0, 1);
+$pdf->Cell(0, 10, 'Status: ' . $invoice['status'], 0, 1);
+$pdf->Image($qr_file, 10, 60, 33, 33, 'PNG');
+unlink($qr_file); // Cleanup
 
-$pdf->Output('D', 'invoice.pdf');  // Download
+$pdf->Output('D', 'invoice_' . $invoice_id . '.pdf');
 ?>
