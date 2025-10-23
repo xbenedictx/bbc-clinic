@@ -24,10 +24,12 @@ async function login() {
         body: JSON.stringify({ action: 'login', email, password })
     });
     const data = await response.json();
+    console.log('API Response:', data); // Debug in console
     if (data.success) {
         localStorage.setItem('token', data.token);
         window.location.href = '/index.html';
     } else {
-        alert(data.message);
+        alert(data.message); // Shows error to user
+        window.location.href = '/login.html'; // Redirects back on failure
     }
 }

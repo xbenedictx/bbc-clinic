@@ -2,7 +2,7 @@
 include 'config.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Allow Vercel frontend
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -11,22 +11,12 @@ $action = $input['action'] ?? '';
 $email = $input['email'] ?? '';
 $password = $input['password'] ?? '';
 
-if ($action === 'register') {
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $stmt = $pdo->prepare("INSERT INTO users (id, email, password, role) VALUES (gen_random_uuid(), ?, ?, 'user')");
-    try {
-        $stmt->execute([$email, $hashedPassword]);
-        echo json_encode(['success' => true, 'message' => 'User registered']);
-    } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()]);
-        error_log('Register Error: ' . $e->getMessage(), 0);
-    }
-} elseif ($action === 'login') {
+if ($action === 'login') {
     $stmt = $pdo->prepare("SELECT password, role FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($user && password_verify($password, $user['password'])) {
-        $token = bin2hex(random_bytes(16)); // Simple token
+        $token = bin2hex(random_bytes(16));
         echo json_encode(['success' => true, 'token' => $token, 'role' => $user['role']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
