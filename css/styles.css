@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+body {
+  font-family: 'Fredoka', sans-serif;
+  background-color: #f0f8ff; /* Light blue */
+  color: #333;
+}
+.card {
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background-color: #fffaf0; /* Floral white */
+}
+.btn-primary {
+  background-color: #ffb6c1; /* Light pink */
+  border-color: #ffb6c1;
+}
+.btn-primary:hover {
+  background-color: #ff69b4; /* Hot pink */
+}
+/* Add paw icons or emojis where needed */
+.pet-icon::before {
+  content: "🐾 ";
+}
