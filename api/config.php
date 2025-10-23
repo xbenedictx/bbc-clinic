@@ -10,6 +10,7 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+    error_log('Config Error: ' . $e->getMessage(), 0); // Log to PHP error log
     exit;
 }
 ?>

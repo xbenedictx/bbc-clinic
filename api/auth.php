@@ -2,7 +2,9 @@
 include 'config.php';
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *'); // Allow frontend requests
+header('Access-Control-Allow-Origin: *'); // Allow Vercel frontend
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $action = $input['action'] ?? '';
@@ -17,16 +19,18 @@ if ($action === 'register') {
         echo json_encode(['success' => true, 'message' => 'User registered']);
     } catch (PDOException $e) {
         echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $e->getMessage()]);
+        error_log('Register Error: ' . $e->getMessage(), 0);
     }
 } elseif ($action === 'login') {
     $stmt = $pdo->prepare("SELECT password, role FROM users WHERE email = ?");
     $stmt->execute([$email]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($user && password_verify($password, $user['password'])) {
-        $token = bin2hex(random_bytes(16)); // Simple token (replace with JWT if needed)
+        $token = bin2hex(random_bytes(16)); // Simple token
         echo json_encode(['success' => true, 'token' => $token, 'role' => $user['role']]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid credentials']);
+        error_log('Login Error: Email or password mismatch for ' . $email, 0);
     }
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
