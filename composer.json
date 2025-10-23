@@ -1,0 +1,17 @@
+{
+    "name": "bbc-clinic/app",
+    "description": "BBC Clinic Appointment System",
+    "type": "project",
+    "require": {
+        "tecnickcom/tcpdf": "^6.6",
+        "chillerlan/php-qrcode": "^5.0"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "xbenedictx",
+            "email": "elevazobenedict@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable"
+}
